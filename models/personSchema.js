@@ -12,7 +12,7 @@ const personSchema = new Schema({
     firstName: {
         type: String,
         required: [true, 'First name is required'],
-        trim: true, 
+        trim: true,
         minlength: [2, 'First name must be at least 2 characters long'],
         maxlength: [50, 'First name cannot be more than 50 characters long']
     },
@@ -42,7 +42,7 @@ const personSchema = new Schema({
         trim: true,
         validate: {
             validator: function (v) {
-                return /^\d{8,15}$/.test(v); 
+                return /^\d{8,15}$/.test(v);
             },
             message: props => `${props.value} is not a valid phone number!`
         }
@@ -65,11 +65,11 @@ const personSchema = new Schema({
         languages: [{ type: String }]
     },
     location: {
-        district: String,
-        city: String,
+        district: { type: String },
+        city: { type: String },
         coordinates: {
-            lat: Number,
-            lng: Number
+            lat: { type: Number },
+            lng: { type: Number }
         }
     },
     dateJoined: {
@@ -82,13 +82,15 @@ const personSchema = new Schema({
     },
     roleDetails: {
         admin: {
-permissions: [{ type: String }],
-lastLogin: { type: Date }        },
+            permissions: [{ type: String }],
+            lastLogin: { type: Date }
+        },
         businessOwner: {
             businessesOwned: [{ type: Schema.Types.ObjectId, ref: "Business" }],
             verified: { type: Boolean, default: false },
-subscriptionPlan: { type: String },
-joinedDate: { type: Date },
+            subscriptionPlan: { type: String },
+            joinedDate: { type: Date }
+        },
         tourist: {
             visitedPlaces: [{ type: Schema.Types.ObjectId, ref: "Place" }],
             bookingsHistory: [{ type: Schema.Types.ObjectId, ref: "Booking" }],
