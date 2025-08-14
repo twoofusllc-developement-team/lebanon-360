@@ -1,52 +1,64 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-const cartSchema = new Schema({
-  //cartid is an objectid by default automatically
-  buyerId: {
+const CartSchema = new Schema({
+  personId: {
     type: Schema.Types.ObjectId,
-    ref: 'Person',
     required: true,
+    ref: 'Person'
   },
-  items: [{
-    offeringId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Offering',
-      required: true
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1
-    },
-    slotId: {
-      type: Schema.Types.ObjectId,
-      ref: 'BookingSlot'
+  items: [
+    {
+      offeringId: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'Offering'
+      },
+      offeringType: {
+        type: String,
+        enum: ['product'],
+        default: 'product',
+        required: true
+      },
+      title: {
+        type: String,
+        required: true
+      },
+      price: {
+        type: Number,
+        required: true
+      },
+      currency: {
+        type: String,
+        required: true
+      },
+      quantity: {
+        type: Number,
+        required: true,
+        min: 1
+      },
+      image: {
+        type: String
+      },
+      addedAt: {
+        type: Date,
+        default: Date.now
+      }
     }
-  }],
-  appliedDiscountId: {
-    type: Schema.Types.ObjectId,
-    ref: "Discount",
-    default: null
+  ],
+  totalAmount: {
+    type: Number,
+    required: true,
+    default: 0
   },
-  updatedAt: {
+  currency: {
+    type: String,
+    required: true
+  },
+  lastUpdated: {
     type: Date,
     default: Date.now
-  },
-  tenanId: {
-    type: Schema.Types.ObjectId,
-    required: true,
-  },
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
-  deletedAt: {
-    type: Date,
-    default: null,
   }
-}, {
-  timestamps: true
 });
 
-module.exports = mongoose.model('Cart', cartSchema);
+module.exports = mongoose.model('Cart', CartSchema);
