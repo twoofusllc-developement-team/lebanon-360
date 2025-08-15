@@ -1,83 +1,101 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-const Schema = mongoose.Schema();
-
-const orderSchema = new Schema({
-  orderId: {
+const OrderSchema = new Schema({
+  personId: {
     type: Schema.Types.ObjectId,
-  },
-  buyerId: {
-    type: Schema.Types.ObjectId,
-    ref: "Person",
     required: true,
+    ref: 'Person'
   },
-  sellerId: {
-    type: Schema.Types.ObjectId,
-    ref: "Person",
-    required: true,
-  },
-  items: [{
-    offeringId: {
-      type: Schema.Types.ObjectId,
-      ref: "offering",
-    },
-    quantity: {
-      type: Number,
-    },
-    unitPrice: {
-      type: Number,
-    },
-    slotId: {
-      type: Schema.Types.ObjectId,
-      ref: "BookingSlot",
+  items: [
+    {
+      offeringId: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'Offering'
+      },
+      offeringType: {
+        type: String,
+        enum: ['product', 'socialmedia', 'delivery'],
+        default: 'product',
+        required: true
+      },
+      title: {
+        type: String,
+        required: true
+      },
+      price: {
+        type: Number,
+        required: true
+      },
+      currency: {
+        type: String,
+        required: true
+      },
+      quantity: {
+        type: Number,
+        required: true,
+        min: 1
+      },
+      image: {
+        type: String
+      },
+      subtotal: {
+        type: Number,
+        required: true
+      }
     }
-  }],
-  appliedDiscountId: {
-    type: Schema.Types.ObjectId,
-    ref: "Discount",
-  },
-  discountAmount: {
+  ],
+  totalAmount: {
     type: Number,
+    required: true
   },
-  subtotal: {
-    type: Number,
+  currency: {
+    type: String,
+    required: true
   },
-  totalPrice: {
-    type: Number,
+  deliveryAddress: {
+    fullName: { type: String, required: true },
+    phone: { type: String, required: true },
+    addressLine1: { type: String, required: true },
+    addressLine2: { type: String },
+    city: { type: String, required: true },
+    district: { type: String },
+    postalCode: { type: String },
+    coordinates: {
+      lat: { type: Number },
+      lng: { type: Number }
+    }
+  },
+  payment: {
+    method: { type: String, required: true },
+    transactionId: { type: String },
+    status: {
+      type: String,
+      enum: ['pending', 'paid', 'failed'],
+      default: 'pending'
+    },
+    paidAt: { type: Date }
   },
   status: {
     type: String,
-    enum: ["pending", "paid", "shipped", "completed", "cancelled"],
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    default: 'pending'
   },
-  shippingAddress: {
-    type: String,
-  },
-  paymentId: {
-    type: Schema.Types.ObjectId,
-    ref: "Payment",
-  },
-  orderedAt: {
+  createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now
   },
-
-  tenantId: {
-    type: Schema.Types.ObjectId,
-  },
-
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
-
-
-  deletedAt: {
+  updatedAt: {
     type: Date,
-    default: Date.now,
-
-  },
-
-}, {
-  timestamps: true,
+    default: Date.now
+  }
 });
-module.exports = mongoose.model("order", orderSchema);
+
+// Middleware to update updatedAt on save
+OrderSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+module.exports = mongoose.model('Order', OrderSchema);

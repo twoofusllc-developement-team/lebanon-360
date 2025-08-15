@@ -1,0 +1,72 @@
+const offering = require('../models/offeringSchema'); // Import your offering model here
+const person = require('../models/personSchema'); // Import your person model here
+
+// Helper function to send a success response
+const successResponse = (res, data, statusCode = 200, message = "") => {
+  res.status(statusCode).json({
+    success: true,
+    message,
+    data,
+  });
+};
+
+// Helper function to send an error response
+const failedResponse = (res, statusCode = 500, message = "") => {
+  res.status(statusCode).json({
+    success: false,
+    message,
+    data: null,
+  });
+};
+
+exports.updateOffering = async (req, res) => {
+  try {
+   
+    const offeringId = req.params.id;
+
+    // Check authentication
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
+
+    // Find the offering
+    const offering = await Offering.findById(offeringId);
+    if (!offering) {
+      return res.status(404).json({ success: false, message: "Offering not found" });
+    }
+
+    // Role check
+    if (req.user.role !== "businessOwner") {
+      return res.status(403).json({ success: false, message: "Only business owners can update offerings" });
+    }
+
+    // Type check
+    if (offering.type !== "product") {
+      return res.status(403).json({ success: false, message: "Only product offerings can be updated" });
+    }
+
+    // Ownership check
+    if (offering.sellerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "You do not own this offering" });
+    }
+
+    // Update fields
+    offering.title = req.body.title || offering.title;
+    offering.description = req.body.description || offering.description;
+    offering.price = req.body.price || offering.price;
+    offering.category = req.body.category || offering.category;
+    offering.images = req.body.images || offering.images;
+
+    const updatedOffering = await offering.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Offering updated successfully",
+      data: updatedOffering
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
