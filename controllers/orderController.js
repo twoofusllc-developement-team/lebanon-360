@@ -98,3 +98,50 @@ exports.cancelOrder = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+//update status
+exports.updateOrderStatus = async (req, res) => {
+  try{
+    const { orderId } = req.params;
+    const { status } = req.body;
+    const user = req.user;
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (!canAccessOrder(order, user)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    
+    if (user.role !== "admin" && user.role !== "businessOwner") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const transitions = {
+      pending: "shipped",
+      shipped: "delivered",
+      delivered: null
+    };
+
+    if (transitions[order.status] !== status) {
+      return res.status(400).json({
+        message: `Invalid status transition from '${order.status}' to '${status}'`
+      });
+    }
+
+    order.status = status;
+    order.updatedAt = new Date();
+    await order.save();
+
+    res.status(200).json({
+      message: "Order status updated successfully.",
+      orderId: order._id,
+      newStatus: order.status,
+      updatedAt: order.updatedAt
+    });
+
+    
+  }catch(error){
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+}
