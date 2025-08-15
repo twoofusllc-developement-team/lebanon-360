@@ -67,3 +67,34 @@ exports.updateOrder = async (req, res) => {
     res.status(400).json({ message: "Invalid order ID" }); // catches invalid ObjectId format
   }
 };
+
+//cancel Order
+exports.cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const user = req.user;
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (!canAccessOrder(order, user)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    if (order.status !== "pending") {
+      return res.status(403).json({ message: "Only pending orders can be cancelled" });
+    }
+    order.status = "cancelled";
+    order.updatedAt = new Date();
+    await order.save();
+
+    res.status(200).json({
+      message: "Order cancelled successfully.",
+      orderId: order._id,
+      status: order.status,
+      updatedAt: order.updatedAt
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
