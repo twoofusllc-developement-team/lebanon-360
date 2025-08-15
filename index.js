@@ -2,10 +2,13 @@ const express = require('express');
 const app = express();
 const DB = require('./database').connectDB; 
 const offeringRoutes = require('./routes/offeringRoutes');
+const storyRoutes = require('./routers/storyRoutes');
 
 DB(); // Connect to MongoDB
 
 app.use(express.json()); 
+
+app.use('/api/stories', storyRoutes);
 
 app.use('/api/v1/offerings', offeringRoutes);
 
