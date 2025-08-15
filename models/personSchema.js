@@ -52,6 +52,9 @@ const personSchema = new Schema({
         required: [true, 'Password is required'],
         minlength: [8, 'Password must be at least 8 characters long']
     },
+     passwordChangedAt: {
+        type: Date
+    },
     profilePicture: {
         type: String,
         default: ""
@@ -93,7 +96,7 @@ const personSchema = new Schema({
         },
         tourist: {
             visitedPlaces: [{ type: Schema.Types.ObjectId, ref: "Place" }],
-            bookingsHistory: [{ type: Schema.Types.ObjectId, ref: "Booking" }],
+            bookingsHistory: [{ type: Schema.Types. ObjectId, ref: "Booking" }],
             wishlist: [{ type: Schema.Types.ObjectId, ref: "Place" }]
         }
     },
