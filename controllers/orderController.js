@@ -145,3 +145,32 @@ exports.updateOrderStatus = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 }
+
+// Get Order Items
+exports.getOrderItems = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const user = req.user;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    if (!canAccessOrder(order, user)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    res.status(200).json({
+      orderId: order._id,
+      items: order.items.map(item => ({
+        offeringId: item.offeringId,
+        title: item.title,
+        quantity: item.quantity,
+        price: item.price
+      }))
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
