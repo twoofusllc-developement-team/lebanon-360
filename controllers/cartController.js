@@ -1,6 +1,6 @@
-const Cart = require("../modules/cartSchema");
-const Order = require("../modules/orderSchema");
-const Person = require("../modules/personSchema"); // Add your user model here
+const Cart = require("../models/cartSchema");
+const Order = require("../models/orderSchema");
+const Person = require("../models/personSchema"); // Add your user model here
 
 // Helper function to send a success response
 const successResponse = (res, data, statusCode = 200, message = "") => {

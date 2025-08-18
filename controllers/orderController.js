@@ -23,7 +23,7 @@ exports.getOrderById = async (req, res) => {
     const { orderId } = req.params;
     const user = req.user;
 
-    const order = await Order.findById(orderId).lean();
+    const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ message: "Order not found" });
     if (!canAccessOrder(order, user))
         { return res.status(403)
