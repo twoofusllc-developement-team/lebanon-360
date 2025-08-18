@@ -8,11 +8,11 @@ app.listen(3000, () => {
 });
 
 const offeringRoutes = require('./routes/offeringRoutes');
-const storyRoutes = require('./routers/storyRoutes');
-
+const personRoutes = require('./routers/personRoutes');
 
 
 app.use('/api/stories', storyRoutes);
+app.use('/api/persons', personRoutes);
 
 app.use('/api/v1/offerings', offeringRoutes);
 
