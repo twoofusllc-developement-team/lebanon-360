@@ -1,6 +1,7 @@
 const Person = require('../models/personSchema');
 const Validator = require('validator');
 const jwt = require('jsonwebtoken');
+const express = require("express");
 
 const ALLOWED_ROLES = ["tourist", "admin"];
 
@@ -180,3 +181,85 @@ exports.protect = async (req, res, next) => {
         });
     }
 };
+
+exports.updatePerson = async (req, res) => {
+  try {
+    const { personId } = req.params;
+    const updates = req.body;
+    const user = req.user;
+
+    const person = await Person.findById(personId);
+    if (!person) return res.status(404).json({ message: "Person not found" });
+
+    if (user.role === "tourist") {
+      if (user._id.toString() !== personId.toString()) {
+        return res.status(403).json({ message: "You can only update your own profile" });
+      }
+      Object.assign(person, updates);
+      await person.save();
+      return res.status(200).json({ message: "Profile updated", personId, updates });
+
+    } else if (user.role === "businessOwner") {
+      person.pendingUpdates = person.pendingUpdates || [];
+      for (let key in updates) {
+        person.pendingUpdates.push({
+          field: key,
+          oldValue: person[key],
+          newValue: updates[key],
+          submittedAt: new Date(),
+          status: "pending"
+        });
+      }
+      await person.save();
+      return res.status(202).json({ message: "Updates pending admin approval", updates });
+
+    } else if (user.role === "admin") {
+      Object.assign(person, updates);
+      await person.save();
+      return res.status(200).json({ message: "Profile updated by admin", personId, updates });
+    }
+
+    res.status(403).json({ message: "Unauthorized role" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+exports.updatePassword = async (req, res) => {
+  try {
+    const { personId } = req.params;
+    const { currentPassword, newPassword, confirmNewPassword } = req.body;
+    const user = req.user;
+
+    // Only self or admin can update
+    if (user._id.toString() !== personId && user.role !== "admin") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    const person = await Person.findById(personId);
+    if (!person) return res.status(404).json({ message: "Person not found" });
+
+    // Check current password if not admin
+    if (user.role !== "admin") {
+      const match = await bcrypt.compare(currentPassword, person.passwordHash);
+      if (!match) return res.status(401).json({ message: "Invalid current password" });
+    }
+
+    person.passwordHash = await bcrypt.hash(newPassword, 12);
+    person.passwordChangedAt = new Date();
+    await person.save();
+
+    res.status(200).json({ message: "Password updated successfully.", timestamp: new Date().toISOString() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+

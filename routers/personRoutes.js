@@ -9,4 +9,10 @@ router.post('/', personController.signup);
 router.get('/', personController.login);
 
 
+router.get('/', personController.updatePerson);
+
+
+router.get('/', personController.updatePassword);
+
+
 module.exports = router;
