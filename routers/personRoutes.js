@@ -5,8 +5,7 @@ const personController = require('../controllers/personController');
 
 router.post('/', personController.signup);
 
-
-router.get('/', personController.login);
-
+        
+router.post('/login', personController.login);
 
 module.exports = router;

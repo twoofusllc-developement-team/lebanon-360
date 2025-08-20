@@ -1,5 +1,5 @@
 //imports
-const offeringschema = require('../model/offeringSchema');
+const offeringschema = require('../models/offeringSchema');
 const person = require('../model/personSchema');
 
 //allowed roles
