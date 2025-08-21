@@ -8,4 +8,10 @@ router.post('/', personController.signup);
         
 router.post('/login', personController.login);
 
+router.get('/', personController.updatePerson);
+
+
+router.get('/', personController.updatePassword);
+
+
 module.exports = router;

@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const DB = require('./database').connectDB; 
+DB();
+
 const offeringRoutes = require('./routers/offeringRoutes');
 const personRoutes = require('./routers/personRoutes');
 const storyRoutes = require('./routers/storyRoutes');
