@@ -1,6 +1,6 @@
 //imports
-const offeringschema = require('../model/offeringSchema');
-const person = require('../model/personSchema');
+const offeringschema = require('../models/offeringSchema');
+const person = require('../models/personSchema');
 
 //allowed roles
 const allowedRole = ["businessOwner"];
