@@ -13,8 +13,9 @@ app.use(express.json());
 
 app.use('/api/stories', storyRoutes);
 app.use('/api', offeringRoutes1);
-
- app.use('/api/offerings', offeringRoutes);
+app.use('/api/signup', personRoutes);
+app.use('/api/login', personRoutes);
+app.use('/api', offeringRoutes);
 app.use('/api', getOfferingRoutes);
 
 app.listen(3000, () => {

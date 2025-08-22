@@ -1,67 +1,60 @@
-//imports the schemas
-const Offering = require('../models/offeringSchema');
-const Person = require('../models/personSchema');
+// imports
+const Offering = require('../models/Offeringschma');
 
-//get all offerings
+// get all offerings
 exports.getOffering = async (req, res) => {
     try {
-        //check if user is authenticated
-        const person = req.person;
-        if (!person) {
-            return res.status(401).json({ message: "Authentication required" });
+        // Simulate authenticated user (replace this with real auth in future)
+        const person = req.person; // assume middleware sets req.person
+        const allowedRoles = ["businessOwner", "tourist", "admin"];
+        if (!person || !allowedRoles.includes(person.role)) {
+            return res.status(403).json({ message: "Access denied" });
         }
 
-        //Access control
-        const allowedRole = ["businessOwner", "tourist"];
-        if (!allowedRole.includes(person.roleDetails.role)) {
-            return res.status(403).json({ message: "Access required" });
-        }
-
-        //Type Validation
-        const type = req.body.type || "product";
+        // Type validation
+        const type = req.query.type || "product";
         if (type !== "product") {
             return res.status(400).json({ message: "Invalid type" });
         }
 
-        //Pagination
-        let page = parseInt(req.query.page) || 1;
-        let limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
-        let skip = (page - 1) * limit;
+        // Pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+        const skip = (page - 1) * limit;
 
-        //Query offerings
+        // Query offerings
         const offerings = await Offering.find({ type: "product" })
             .skip(skip)
             .limit(limit);
 
-        //Format offerings
-        const formatted = offerings.map(offering => ({
-            offeringId: offering._id,
-            personId: offering.personId,
-            version: offering.version,
-            previousVersionId: offering.previousVersionId,
-            type: offering.type,
-            title: offering.title,
-            description: offering.description,
-            price: offering.details?.product?.price,
-            currency: offering.details?.product?.currency || "USD",
-            stock: offering.details?.product?.stockQuantity,
-            images: offering.images,
-            category: offering.categoryId?.toString(),
-            tags: offering.tags,
-            rating: offering.ratings?.averageRating,
-            createdAt: offering.createdAt,
-            updatedAt: offering.updatedAt
+        // Map to required response format
+        const formatted = offerings.map(o => ({
+            offeringId: o._id,
+            personId: o.personId,
+            version: o.version,
+            previousVersionId: o.previousVersionId || null,
+            type: o.type,
+            title: o.title,
+            description: o.description,
+            price: o.details?.product?.price || 0,
+            currency: o.details?.product?.currency || "USD",
+            stock: o.details?.product?.stockQuantity || 0,
+            images: o.images || [],
+            category: o.categoryId ? o.categoryId.toString() : null,
+            tags: o.tags || [],
+            rating: o.ratings?.averageRating || 0,
+            createdAt: o.createdAt,
+            updatedAt: o.updatedAt
         }));
 
-        //send response
         res.status(200).json({
             page,
             limit,
             count: formatted.length,
             offerings: formatted
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: error.message });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
     }
 };

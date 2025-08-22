@@ -1,25 +1,27 @@
 const express = require('express');
 const router = express.Router();
-const {createOffering} = require('../controllers/postOffering');
-const jwt =  require('jsonwebtoken');
+const { createOffering } = require('../controllers/postOffering');
+const jwt = require('jsonwebtoken');
 
-//  Jwt uthentication middleware
+// JWT authentication middleware
 function authenticateToken(req, res, next) {
-    const authheader = req.headers['authorization'];
-    const token  = authheader && authheader.split(' ')[1];
-    if(!token){
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
         return res.status(401).json({ message: "Authentication required" });
     }
-    jwt.verify(token, process.env.JWT_SECRET, (err , personr) => {
-        if(err){
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, person) => {
+        if (err) {
             return res.status(403).json({ message: "Invalid token" });
         }
-        req.Person = Person;
+        req.person = person; // attach decoded JWT payload
         next();
     });
 }
-//post api
-router.post("/api/postofferings/", authenticateToken, createOffering);
 
-//exort router
+// POST /api/postofferings
+router.post("/postofferings", authenticateToken, createOffering);
+
 module.exports = router;
