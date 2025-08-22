@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createOffering } = require('../controllers/postOffering');
+const { createOffering } = require('../controllers/offeringController');
 const jwt = require('jsonwebtoken');
 
 // JWT authentication middleware

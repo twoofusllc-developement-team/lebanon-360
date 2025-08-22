@@ -1,5 +1,136 @@
-const Offering = require("../models/offeringSchema");
+// imports
+const Offerings = require("../models/Offeringschma");   // ✅ for GET + POST
+const Offering = require("../models/offeringSchema");   // ✅ still used for updates
+const person = require("../models/personSchema");
 
+// allowed roles
+const allowedRole = ["tourist", "admin"];
+
+// valid currencies
+const validCurrencies = ["USD", "EUR", "GBP", "INR"];
+
+// required fields
+const requiredFieldsMap = {
+  product: ["title", "description", "price", "currency", "stockQuantity", "images"],
+};
+
+// create offering controller
+exports.createOffering = async (req, res) => {
+  try {
+    const person = req.person; // authenticated user from middleware
+
+    if (!person) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    // Role check
+    if (!allowedRole.includes(person.role)) {
+      return res.status(403).json({ error: "Only tourists or admins can create product offerings" });
+    }
+
+    const { personId, type, title, description, price, currency, stockQuantity, images, categoryId, tags } = req.body;
+
+    if (!personId) {
+      return res.status(400).json({ error: "personId is required" });
+    }
+
+    // Validate required fields
+    const requiredFields = requiredFieldsMap[type] || [];
+    for (const field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({ error: `${field} is required for ${type}` });
+      }
+    }
+
+    // Validate currency
+    if (currency && !validCurrencies.includes(currency)) {
+      return res.status(400).json({ error: "Invalid currency" });
+    }
+
+    // Create new offering
+    const newOffering = new Offerings({
+      personId, // coming from req.body
+      type,
+      title,
+      description,
+      details: {
+        product: {
+          price,
+          currency: currency || "USD",
+          stockQuantity,
+        },
+      },
+      images,
+      categoryId,
+      tags,
+      createdAt: new Date(),
+    });
+
+    await newOffering.save();
+
+    res.status(201).json({
+      message: "Offering created successfully",
+      offering: newOffering,
+    });
+
+  } catch (error) {
+    console.error("Error creating offering:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// GET OFFERINGS (uses Offerings schema)
+exports.getOffering = async (req, res) => {
+  try {
+    const person = req.person;
+    const allowedRoles = ["businessOwner", "tourist", "admin"];
+    if (!person || !allowedRoles.includes(person.role)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const type = req.query.type || "product";
+    if (type !== "product") {
+      return res.status(400).json({ message: "Invalid type" });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+    const skip = (page - 1) * limit;
+
+    const offerings = await Offerings.find({ type: "product" })
+      .skip(skip)
+      .limit(limit);
+
+    const formatted = offerings.map((o) => ({
+      offeringId: o._id,
+      personId: o.personId,
+      version: o.version,
+      previousVersionId: o.previousVersionId || null,
+      type: o.type,
+      title: o.title,
+      description: o.description,
+      price: o.details?.product?.price || 0,
+      currency: o.details?.product?.currency || "USD",
+      stock: o.details?.product?.stockQuantity || 0,
+      images: o.images || [],
+      category: o.categoryId ? o.categoryId.toString() : null,
+      tags: o.tags || [],
+      rating: o.ratings?.averageRating || 0,
+      createdAt: o.createdAt,
+      updatedAt: o.updatedAt,
+    }));
+
+    res.status(200).json({
+      page,
+      limit,
+      count: formatted.length,
+      offerings: formatted,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
 exports.updateOfferingAvailability = async (req, res) => {
   try {
     const { id } = req.params;

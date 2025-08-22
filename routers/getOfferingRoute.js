@@ -1,7 +1,7 @@
 // imports
 const express = require('express');
 const router = express.Router();
-const { getOffering } = require('../controllers/getOfferingController');
+const { getOffering } = require('../controllers/offeringController');
 const jwt = require('jsonwebtoken');
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
